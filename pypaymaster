@@ -1,0 +1,33 @@
+Python
+from zksync.paymaster import Paymaster
+
+class SimplePaymaster(Paymaster):
+    def __init__(self, fee, token):
+        self.fee = fee
+        self.token = token
+
+    def pay(self, sender, recipient, amount, **kwargs):
+        # Проверьте, достаточно ли у отправителя средств
+        if sender.balance < amount + self.fee:
+            raise ValueError("Insufficient funds")
+
+        # Перенаправьте платеж
+        recipient.transfer(amount)
+
+        # Взимайте комиссию
+        self.fee_receiver.transfer(self.fee)
+
+    def get_required_funds(self, sender, recipient, amount, **kwargs):
+        return amount + self.fee
+
+Python
+from zksync.wallet import Wallet
+
+# Создайте кошелек
+wallet = Wallet()
+
+# Создайте Paymaster
+paymaster = SimplePaymaster(fee=10, token="0x...")
+
+# Отправьте платеж
+wallet.send(recipient="0x...", amount=100, paymaster=paymaster)
